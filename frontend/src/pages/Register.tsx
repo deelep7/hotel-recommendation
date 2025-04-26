@@ -2,13 +2,14 @@ import {useForm} from "react-hook-form";
 import { useMutation } from "react-query";
 import * as apiClient from '../api-client';
 
- export type RegisterFormData = {
-    fristName : string,
-    lastName :string,
+export type RegisterFormData = {
+    firstName: string,
+    lastName: string,
     email: string,
-    password : string,
-    confirmPassword : string;
+    password: string,
+    confirmPassword: string;
 }
+
 
 const Register = () =>{
 
@@ -44,11 +45,11 @@ const Register = () =>{
                 <label className="text-gray-700 text-sm font-bold flex-1" >
                     First Name
                     <input className="border rounded w-full py-1 px-2 font-normal"
-                    {...register("fristName", {required: "This field is required"})}>
+                    {...register("firstName", {required: "This field is required"})}>
                         
                     </input>
-                    {errors.fristName && (
-                        <span className="bg-red-500">{ errors.fristName.message}</span>
+                    {errors.firstName && (
+                        <span className="bg-red-500">{ errors.firstName.message}</span>
                     )}
                 </label>
                 <label className="text-gray-700 text-sm font-bold flex-1">
