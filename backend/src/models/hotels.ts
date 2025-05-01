@@ -10,7 +10,7 @@ export type HotelType={
     type: string;
     adultCount: number;
     childCount:number;
-    facilities: string;
+    facilities: string[];
     pricePerNight: number;
     starRating: number;
     imageUrls: string[];
@@ -26,7 +26,7 @@ const hotelSchema = new mongoose.Schema<HotelType>({
     type: {type:String , required: true},
     adultCount: {type:Number , required: true},
     childCount: {type:Number , required: true},
-    facilities: {type:String , required: true},
+    facilities: { type: [String], required: true },
     pricePerNight : {type:Number , required: true},
     starRating: {type:Number , required: true, min:1, max:5},
     imageUrls: [{type:String , required: true}],
