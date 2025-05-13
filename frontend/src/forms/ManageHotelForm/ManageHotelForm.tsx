@@ -1,72 +1,116 @@
 import { FormProvider, useForm } from "react-hook-form";
+import { useEffect } from "react";
 import DetailsSection from "./DetailsSection";
 import TypeSection from "./TypeSection";
 import FacilitiesSection from "./FacilitiesSection";
 import GuestsSection from "./GuestsSection";
 import ImagesSection from "./ImagesSection";
+import { HotelType } from "../../../../backend/src/shared/types";
 
-export type HotelFormData={
-    name: string;
-    city: string;
-    country: string;
-    description: string;
-    type: string;
-    adultCount: number;
-    facilities: string[];
-    pricePerNight: number;
-    starRating: number;
-    imageFiles: FileList;
-    lastUpdated: Date;
-    childCount: number;
+export type HotelFormData = {
+  name: string;
+  city: string;
+  country: string;
+  description: string;
+  type: string;
+  pricePerNight: number;
+  starRating: number;
+  facilities: string[];
+  imageFiles: FileList;
+  imageUrls: string[];
+  adultCount: number;
+  childCount: number;
 };
 
-type Props ={
-    onSave:(hotelFormData : FormData)=> void
-    isLoading : boolean
-}
+type Props = {
+  hotel?: HotelType;
+  onSave: (formData: FormData) => void;
+  isLoading: boolean;
+};
 
-const ManageHotelForm =({onSave , isLoading}:Props)=>{
-    const fromMethods = useForm<HotelFormData>();
-    const {handleSubmit} = fromMethods;
+const ManageHotelForm = ({ hotel, onSave, isLoading }: Props) => {
+  const formMethods = useForm<HotelFormData>({
+    defaultValues: {
+      name: "",
+      city: "",
+      country: "",
+      description: "",
+      type: "",
+      pricePerNight: 0,
+      starRating: 0,
+      facilities: [],
+      imageFiles: {} as FileList,
+      imageUrls: [],
+      adultCount: 1,
+      childCount: 0,
+    },
+  });
 
-    const onSubmit = handleSubmit((formDataJSON: HotelFormData)=>{
-        const formData =new FormData();
-        formData.append("name", formDataJSON.name);
-        formData.append("city", formDataJSON.city);
-        formData.append("country", formDataJSON.country);
-        formData.append("description", formDataJSON.description);
-        formData.append("type", formDataJSON.type);
-        formData.append("pricePerNight", formDataJSON.pricePerNight.toString());
-        formData.append("starRating", formDataJSON.starRating.toString());
-        formData.append("adultCount", formDataJSON.adultCount.toString());
-        formData.append("childCount", formDataJSON.childCount.toString());
-        
-        formDataJSON.facilities.forEach((facility, index) => {
-            formData.append(`facilities[${index}]`, facility);
-        });
-        Array.from(formDataJSON.imageFiles).forEach((imageFile) => {
-            formData.append(`imageFiles`, imageFile);
-        });
-        onSave(formData)
+  const { handleSubmit, reset, watch } = formMethods;
 
-    })
-    return <FormProvider {...fromMethods}>
-        <form className="flex flex-col gap-10" onSubmit={onSubmit}>
-            <DetailsSection/>
-            <TypeSection />
-            <FacilitiesSection />
-            <GuestsSection/>
-            <ImagesSection/>
+  // Populate form when editing
+  useEffect(() => {
+    if (hotel) {
+      reset({
+        ...hotel,
+        imageFiles: {} as FileList, // cannot set FileList directly, left empty
+      });
+    }
+  }, [hotel, reset]);
 
-            <span className="flex justify-end">
-                <button 
-                disabled={isLoading} type="submit" className="bg-blue-600 text-white p-2 font-bold hover:bg-blue-500 text-xl disabled: bg-gray-500">
-                    {isLoading? "Saving..": "Save"}
-                </button>
+  const onSubmit = (data: HotelFormData) => {
+    const formData = new FormData();
 
-            </span>
-        </form>
+    if (hotel?._id) {
+      formData.append("hotelId", hotel._id);
+    }
+
+    formData.append("name", data.name);
+    formData.append("city", data.city);
+    formData.append("country", data.country);
+    formData.append("description", data.description);
+    formData.append("type", data.type);
+    formData.append("pricePerNight", data.pricePerNight.toString());
+    formData.append("starRating", data.starRating.toString());
+    formData.append("adultCount", data.adultCount.toString());
+    formData.append("childCount", data.childCount.toString());
+
+    data.facilities.forEach((facility, index) => {
+      formData.append(`facilities[${index}]`, facility);
+    });
+
+    data.imageUrls.forEach((url, index) => {
+      formData.append(`imageUrls[${index}]`, url);
+    });
+
+    Array.from(data.imageFiles || []).forEach((file) => {
+      formData.append("imageFiles", file);
+    });
+
+    onSave(formData);
+  };
+
+  return (
+    <FormProvider {...formMethods}>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-10">
+        <DetailsSection />
+        <TypeSection />
+        <FacilitiesSection />
+        <GuestsSection />
+        <ImagesSection />
+
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="bg-blue-600 text-white p-3 px-6 rounded-lg font-semibold hover:bg-blue-500 disabled:bg-gray-400"
+          >
+            {isLoading ? "Saving..." : "Save"}
+          </button>
+        </div>
+      </form>
     </FormProvider>
-}
+  );
+};
 
 export default ManageHotelForm;

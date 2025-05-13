@@ -4,7 +4,7 @@ import * as apiClient from '../api-client';
 import { useAppContext } from "../contexts/AppContext";
 import { useNavigate, Link} from "react-router-dom";
 
-export type SignInFromData ={
+export type SignInFormData ={
     email : string;
     password: string;
 }
@@ -16,7 +16,7 @@ const SignIn = ()=>{
     const {register,
          formState :{ errors},
         handleSubmit,
-        } =useForm<SignInFromData>();
+        } =useForm<SignInFormData>();
 
     const mutation = useMutation(apiClient.signIn,{
         onSuccess: async ()=>{

@@ -7,7 +7,8 @@ import authRoutes from "./routes/auth";
 import cookieParser from "cookie-parser";
 import path from "path";
 import {v2 as cloudinary} from 'cloudinary';
-import myHotelRoutes from './routes/my-hotels'
+import myHotelRoutes from './routes/my-hotels';
+import hotelRoutes from "./routes/hotels";
 
 
 cloudinary.config({
@@ -35,6 +36,7 @@ app.use(express.static(path.join(__dirname,"../../frontend/dist")));
 app.use("/api/auth", authRoutes);
 app.use("/api/users",userRoutes);
 app.use("/api/my-hotels", myHotelRoutes)
+app.use("/api/hotels", hotelRoutes)
 
 app.listen(3000,()=>{
     console.log("server running at 3000");
