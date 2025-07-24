@@ -4,7 +4,7 @@ import { useAppContext } from "../contexts/AppContext";
 import { useState, useMemo } from "react";
 
 const AdminDashboard = () => {
-  const { showToast } = useAppContext();
+  const { showToast, userRole } = useAppContext();
   const queryClient = useQueryClient();
   const { data: hotels, isLoading } = useQuery("allHotels", apiClient.fetchHotels);
   const { data: users } = useQuery("adminUsers", apiClient.fetchAllUsers);
@@ -17,7 +17,17 @@ const AdminDashboard = () => {
       showToast({ message: "Error deleting hotel", type: "ERROR" });
     },
   });
+  const deleteUserMutation = useMutation(apiClient.deleteUser, {
+    onSuccess: () => {
+      showToast({ message: "User deleted", type: "SUCCESS" });
+      queryClient.invalidateQueries("adminUsers");
+    },
+    onError: () => {
+      showToast({ message: "Error deleting user", type: "ERROR" });
+    },
+  });
   const [selectedHotel, setSelectedHotel] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [tab, setTab] = useState<"hotels" | "users">("hotels");
 
   // Map userId to user for quick lookup
@@ -30,6 +40,8 @@ const AdminDashboard = () => {
     }
     return map;
   }, [users]);
+
+  if (userRole !== "admin") return null;
 
   if (isLoading) return <div>Loading...</div>;
 
@@ -124,24 +136,58 @@ const AdminDashboard = () => {
         </>
       )}
       {tab === "users" && (
-        <table className="min-w-full border mb-8">
-          <thead>
-            <tr>
-              <th className="border px-4 py-2">Name</th>
-              <th className="border px-4 py-2">Email</th>
-              <th className="border px-4 py-2">Role</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users?.map((user: any) => (
-              <tr key={user._id}>
-                <td className="border px-4 py-2">{user.firstName} {user.lastName}</td>
-                <td className="border px-4 py-2">{user.email}</td>
-                <td className="border px-4 py-2">{user.role}</td>
+        <>
+          <table className="min-w-full border mb-8">
+            <thead>
+              <tr>
+                <th className="border px-4 py-2">Name</th>
+                <th className="border px-4 py-2">Email</th>
+                <th className="border px-4 py-2">Role</th>
+                <th className="border px-4 py-2">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {users?.map((user: any) => (
+                <tr key={user._id}>
+                  <td className="border px-4 py-2">{user.firstName} {user.lastName}</td>
+                  <td className="border px-4 py-2">{user.email}</td>
+                  <td className="border px-4 py-2">{user.role}</td>
+                  <td className="border px-4 py-2 space-x-2">
+                    <button
+                      className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                      onClick={() => setSelectedUser(user)}
+                    >
+                      View Details
+                    </button>
+                    <button
+                      className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                      onClick={() => deleteUserMutation.mutate(user._id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {/* Modal for user details */}
+          {selectedUser && (
+            <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full relative">
+                <button
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl"
+                  onClick={() => setSelectedUser(null)}
+                >
+                  &times;
+                </button>
+                <h2 className="text-2xl font-bold mb-2">{selectedUser.firstName} {selectedUser.lastName}</h2>
+                <div className="mb-2"><span className="font-semibold">Email:</span> {selectedUser.email}</div>
+                <div className="mb-2"><span className="font-semibold">Role:</span> {selectedUser.role}</div>
+                <div className="mb-2"><span className="font-semibold">User ID:</span> {selectedUser._id}</div>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

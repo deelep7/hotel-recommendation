@@ -9,6 +9,7 @@ import Register from "./pages/Register";
 import SignIn from "./pages/SignIn";
 import AddHotel from "./pages/AddHotel";
 import { useAppContext } from "./contexts/AppContext";
+import { useQuery } from "react-query";
 import MyHotels from "./pages/MyHotels";
 import EditHotel from "./pages/EditHotel";
 import Search from "./pages/Search";
@@ -23,7 +24,9 @@ import Profile from "./pages/Profile";
 import BookingConfirmation from "./pages/BookingConfirmation";
 
 const App = () => {
-  const { isLoggedIn, userRole } = useAppContext();
+  const { isLoggedIn, userRole, currentUser } = useAppContext();
+  const { isLoading } = useQuery("fetchCurrentUser", () => Promise.resolve(currentUser));
+  if (isLoading) return null; // or a spinner
   return (
     <Router>
       <Routes>
@@ -92,6 +95,17 @@ const App = () => {
           }
         />
 
+        <Route
+          path="/admin"
+          element={userRole === "admin" ? (
+            <Layout>
+              <AdminDashboard />
+            </Layout>
+          ) : (
+            <Navigate to="/sign-in" replace />
+          )}
+        />
+
         {isLoggedIn && (
           <>
             <Route
@@ -148,22 +162,6 @@ const App = () => {
                   </Layout>
                 }
               />
-            )}
-            {userRole === "admin" && (
-              <>
-                <Route
-                  path="/admin"
-                  element={
-                    <Layout>
-                      <AdminDashboard />
-                    </Layout>
-                  }
-                />
-                <Route
-                  path="*"
-                  element={<Navigate to="/admin" />}
-                />
-              </>
             )}
           </>
         )}
